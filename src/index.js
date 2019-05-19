@@ -100,6 +100,7 @@ module.exports = function (serverless) {
                 },
 
                 // Stages, one per deployment.  TODO Support multiple stages?
+                // Resource names must be alphanumeric
                 deployments
                     .mapValues((deployment, deploymentKey) => ({
                         Type: 'AWS::ApiGateway::Stage',
@@ -131,7 +132,10 @@ module.exports = function (serverless) {
                             ))
                         }
                     }))
-                    .mapKeys((deployment) => `ApiGatewayStage${_.upperFirst(deployment.Properties.StageName)}`)
+                    .mapKeys((deployment) => {
+                        const cleanStageName = String(deployment.Properties.StageName).replace(/[\W_]+/g, '');
+                        return `ApiGatewayStage${_.upperFirst(cleanStageName)}`;
+                    })
                     .value(),
 
                 // Deployments, with the stage name removed (the Stage's DeploymentId property is used instead).
